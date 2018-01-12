@@ -2,6 +2,7 @@
 #define MOXIE_MCOSTACK_H
 #include <set>
 #include <map>
+#include <vector>
 
 #include <Log.h>
 #include <PoolInThreads.hpp>
