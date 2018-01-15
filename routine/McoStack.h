@@ -2,6 +2,7 @@
 #define MOXIE_MCOSTACK_H
 #include <set>
 #include <map>
+#include <vector>
 
 #include <Log.h>
 #include <PoolInThreads.hpp>
@@ -104,6 +105,7 @@ public:
                 size_ &= ~0xFFF;
                 size_ += 0x1000;
             }
+            LOGGER_TRACE("create private size:" << size_);
             stack_ = new char[size_];
             if (stack_ && size_ > 0) {
                 sbp_ = stack_ + size_;

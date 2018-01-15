@@ -36,7 +36,8 @@ public:
         wec->fd(wfd_);
         esync(wec);
     }
-    ~EventLoop() {
+
+	~EventLoop() {
         delete epoll_;
     }
 
@@ -81,14 +82,20 @@ public:
         assert(gettid() == tid_);
         std::vector<PollerEvent> occur;
         while(!quit_) {
+			LOGGER_TRACE("Start new loop");
             eat();
             epoll_->Loop(occur, 20000);
             for(size_t i = 0; i < occur.size(); ++i) {
+				LOGGER_TRACE("Begin handle event");
                 int fd = occur[i].fd;
                 auto ec = ecs_.find(fd);
                 if (ec == ecs_.end()) {
                     assert(false);
                 }
+				if (fd == wfd_) {
+					wait();
+					continue;
+				}
                 auto co = ec->second->mco();
                 if (co) {
                     co->resume();
@@ -128,16 +135,23 @@ private:
         auto event = ec->event();
         assert(event && (event->fd() == fd));
         if (ec->deler()) {
+			LOGGER_TRACE("Delete Econtext");
             assert(ecs_.count(fd) > 0);
             epoll_->del(event.get());
             ecs_.erase(fd);
         } else if (ec->moder()) {
+			LOGGER_TRACE("Modify Econtext");
+            assert(ecs_.count(fd) > 0);
             epoll_->mod(event.get());
         } else if (event->newer()) {
+			LOGGER_TRACE("Update new Econtext");
             assert(ecs_.count(fd) == 0);
             ecs_[fd] = ec;
-        }
-        return false;
+			epoll_->add(event.get());
+        } else {
+			assert(false);
+		}
+        return true;
     }
 
     bool eat() {

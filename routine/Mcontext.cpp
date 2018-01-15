@@ -1,5 +1,6 @@
-#include "Mcontext.h"
+#include <Mcontext.h>
 #include <string.h>
+#include <stdio.h>
 
 #define EAX 0
 #define EBX 1
@@ -38,6 +39,7 @@ int McontextMake(Mcontext *ctx, cofunc pfn, const void *s) {
     memset(ctx->regs, 0, sizeof(ctx->regs));
 
     char *sp = ctx->ss_sp + ctx->ss_size - sizeof(void *);
+	printf("ss_sp:%d ss_size:%d\n", (int)ctx->ss_sp, ctx->ss_size);
     sp = (char*) ((unsigned long)sp & -16L);
     unsigned int *p = (unsigned int *)sp;
     *p = (unsigned int)s;

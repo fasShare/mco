@@ -65,7 +65,7 @@ public:
             auto mco = new McoRoutine(Empty, true);
             mco->stack(stack);
             mco->callStack(callstack_);
-            initMcontext();
+            mco->initMcontext();
             McontextMake(mco->ctx_, (cofunc)McoRoutine::RunRoutine, mco);
             mco->main_ = true;
             mco->start_ = true;

@@ -5,25 +5,23 @@
 #include <unistd.h>
 #include <atomic>
 
-#include <EventLoop.h>
 #include <Mutex.h>
+#include <EventLoop.h>
 
 namespace moxie {
-
-class EventLoop;
 
 class EventLoopPool {
 public:
     static bool AddEventLoop(EventLoop* loop) {
         return Instance()->addEventLoop(loop->tid(), loop);
     }
-    static bool addMainLoop(EventLoop* loop) {
+    static bool AddMainLoop(EventLoop* loop) {
 		return Instance()->addEventLoop(loop->tid(), loop, true);	
     }
-    static EventLoop *GetNextLoop() {
+    static EventLoop *NextLoop() {
         return Instance()->getNextLoop();
     }
-	static EventLoop *GetMainLoop() {
+	static EventLoop *MainLoop() {
 		return Instance()->getMainLoop();
 	}
     static EventLoop *GetLoop(long tid) {
@@ -46,5 +44,4 @@ private:
 };
 
 }
-
 #endif //MOXIE_EVENTLOOPPOOL_H

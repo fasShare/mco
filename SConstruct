@@ -9,9 +9,9 @@ FAS_CFLAGS = [
     '-D_REENTRANT'
     ]
 
-INCLUDE_PATH = ['.', 'routine']
+INCLUDE_PATH = ['.', 'routine', 'base']
 
-routine_source = Glob("routine/*.cpp") + Glob("routine/*.S") 
+routine_source = Glob("routine/*.cpp") + Glob("routine/*.S") + Glob("base/*.cpp") 
 StaticLibrary('./lib/routine',
         routine_source,
         LIBPATH = ['lib'],
@@ -22,5 +22,11 @@ Program('./bin/Main', './test/Main.cpp',
         LIBPATH = ['lib'],
         CPPPATH = INCLUDE_PATH,
         LIBS = ['routine', 'pthread'],
+        CCFLAGS = FAS_CFLAGS
+)
+Program('./bin/MultiEcho', './test/MultiEcho.cpp',
+        LIBPATH = ['lib'],
+        CPPPATH = INCLUDE_PATH,
+        LIBS = ['routine', 'pthread', 'dl'],
         CCFLAGS = FAS_CFLAGS
 )
