@@ -5,6 +5,7 @@
 #include <sys/poll.h>
 #include <dlfcn.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <Log.h>
 
@@ -68,7 +69,7 @@ public:
     }
 
     ~Events() {
-        ::uni_close(fd_);
+        uni_close(fd_);
         LOGGER_TRACE("Events destroyed.");
     }
 
