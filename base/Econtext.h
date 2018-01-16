@@ -6,8 +6,18 @@
 
 namespace moxie {
 
+class EventLoop;
+
 class Econtext {
 public:
+	EventLoop *loop() {
+		return loop_;
+	}
+
+	void loop(EventLoop *loop) {
+		loop_ = loop;
+	}
+
     int fd() const {
         return fd_;
     }
@@ -58,6 +68,7 @@ public:
     }
 private:
     int fd_;
+	EventLoop *loop_;
     std::shared_ptr<Events> event_;
     std::shared_ptr<McoRoutine> co_;
 };

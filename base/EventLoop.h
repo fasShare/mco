@@ -41,13 +41,13 @@ public:
         delete epoll_;
     }
 
-    bool put(std::shared_ptr<Econtext> event) {
+    bool put(std::shared_ptr<Econtext> ectx) {
         MutexLocker lock(mutex_);
         if (gettid() != tid_) {    
-            food_.push_back(event);
+            food_.push_back(ectx);
             notify();
         } else {
-            esync(event);
+            esync(ectx);
         }
         return true;
     }
@@ -84,12 +84,14 @@ public:
         while(!quit_) {
 			LOGGER_TRACE("Start new loop");
             eat();
+			occur.clear();
             epoll_->Loop(occur, 20000);
             for(size_t i = 0; i < occur.size(); ++i) {
 				LOGGER_TRACE("Begin handle event");
                 int fd = occur[i].fd;
                 auto ec = ecs_.find(fd);
                 if (ec == ecs_.end()) {
+					LOGGER_TRACE("can't find fd:" << fd);
                     assert(false);
                 }
 				if (fd == wfd_) {
@@ -134,9 +136,10 @@ private:
         int fd = ec->fd();
         auto event = ec->event();
         assert(event && (event->fd() == fd));
+		LOGGER_TRACE("ecs_size:" << ecs_.size());
         if (ec->deler()) {
 			LOGGER_TRACE("Delete Econtext");
-            assert(ecs_.count(fd) > 0);
+            assert(ecs_.count(fd) == 1);
             epoll_->del(event.get());
             ecs_.erase(fd);
         } else if (ec->moder()) {
@@ -151,6 +154,7 @@ private:
         } else {
 			assert(false);
 		}
+		LOGGER_TRACE("ecs_size:" << ecs_.size());
         return true;
     }
 

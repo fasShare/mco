@@ -1,17 +1,13 @@
-#ifndef FAS_SIGIGNORE
-#define FAS_SIGIGNORE
+#ifndef MOXIE_SIGIGNORE_H
+#define MOXIE_SIGIGNORE_H
 
 namespace moxie {
-/*!
- * \brief The SigIgnore class
- * We can define a global SigIgnore variable to ignore the signal.
- * see ::signal(SIGPIPE, SIG_IGN) in SigIgnore ctor.
- */
+
 class SigIgnore {
 public:
     SigIgnore();
 };
 
 }
-#endif // FAS_SIGIGNORE
+#endif // MOXIE_SIGIGNORE_H
 

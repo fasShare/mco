@@ -46,7 +46,7 @@ private:
 
 class CommonStack {
 public:
-    CommonStack(size_t num = 2, size_t size = 1024 * 1024) :
+    CommonStack(size_t num = 1, size_t size = 1024 * 1024) :
         index_(0),
         num_(num),
         size_(size),
@@ -135,6 +135,10 @@ public:
         ssp_ = sp;
     }
 
+	char *ssp() {
+		return ssp_;
+	}
+
     size_t size() {
         return size_;
     }
@@ -181,13 +185,13 @@ public:
             delete[] stack->stmp_;
             stack->stmp_ = nullptr;
         }
-        stack->rsize_ = stack->sbp_ - stack->ssp_;
-        assert(stack->rsize_ > 0);
-        stack->stmp_ = new char[stack->rsize_];
-        LOGGER_TRACE("stack:" << (unsigned long)stack);
+        stack->rsize_ = (unsigned long)stack->sbp_ - (unsigned long)stack->ssp_;
         LOGGER_TRACE("Store->bottom:" << (unsigned long)stack->ssp_);
         LOGGER_TRACE("Store->top:" << (unsigned long)stack->sbp_);
         LOGGER_TRACE("Store->restore_size:" << stack->rsize_);
+        assert(stack->rsize_ > 0);
+        stack->stmp_ = new char[stack->rsize_];
+        LOGGER_TRACE("stack:" << (unsigned long)stack);
         memcpy(stack->stmp_, stack->ssp_, stack->rsize_);
     }
 
