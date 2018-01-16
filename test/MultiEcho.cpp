@@ -20,6 +20,7 @@ void client_call(std::weak_ptr<Econtext> wect) {
 			break;
 		}
 		auto mco = ect->mco();
+        LOGGER_TRACE("mco[" << (unsigned long)(mco.get()) << "] use_count:" << mco.use_count());
 		char buf[1024];
 		int ret = read(ect->fd(), buf, 1023);
 		LOGGER_TRACE("New socket io event on fd:" << ect->fd());

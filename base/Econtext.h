@@ -35,6 +35,7 @@ public:
     }
 
     std::shared_ptr<McoRoutine> mco() const {
+        LOGGER_TRACE("co_ [" << (unsigned long)(co_.get()) << "] use_count:" << co_.use_count());
         return co_;
     }
 

@@ -42,7 +42,7 @@ public:
 	~McoRoutine() {
 		delete stack_;
 		stack_ = nullptr;
-		LOGGER_TRACE("McoRoutine will be destroyed.");
+		LOGGER_TRACE("McoRoutine [" << (unsigned long)this << "]will be destroyed.");
 	}
 
     void isMain(bool m) {
@@ -134,8 +134,15 @@ public:
     static void swap(McoRoutine *sink, McoRoutine *co) {
         char c;
         LOGGER_TRACE("begin swap addr_c:" << (unsigned long)&c);
-        sink->stack_->ssp(&c);
-		sink->sinked(true);
+        if (!(sink->done_ && sink->dyield_)) {
+            sink->stack_->ssp(&c);
+		    sink->sinked(true);
+        } else {
+            auto ocp = sink->stack_->occupy();
+            if (ocp == sink) {
+                sink->stack_->occupy(nullptr);
+            }
+        }
         if (!co->priStack_) {
             auto occupy = co->stack_->occupy();
 			if (occupy) {

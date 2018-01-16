@@ -99,9 +99,11 @@ public:
 					continue;
 				}
                 auto co = ec->second->mco();
+                LOGGER_TRACE("co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count());
                 if (co) {
                     co->resume();
                 }
+                LOGGER_TRACE("co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count());
             }
         }
     }
