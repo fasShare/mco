@@ -97,10 +97,11 @@ public:
             (*callstack_)[index] = this;
             ++index;
             cur->running_ = false;
-			LOGGER_TRACE("yield cur=" << (unsigned long)cur);
-			LOGGER_TRACE("yield this=" << (unsigned long)this);
+			LOGGER_TRACE("resume cur=" << (unsigned long)cur);
+			LOGGER_TRACE("resume this=" << (unsigned long)this);
             swap(cur, this);
         } else {
+			assert(index >= 2);
             cur->yield();
         }
     }
@@ -160,13 +161,19 @@ public:
                 McoStack::StoreStack(occupy->stack_);
             }
         }
+		if (!(sink->done_ && sink->dyield_)
+			&& !sink->priStack_ && !sink->store_) {
+			sink->store_ = true;
+			McoStack::StoreStack(sink->stack_);
+		}
+
         LOGGER_TRACE("before mcontext_swap");
         mcontext_swap(sink->ctx_, co->ctx_);
         LOGGER_TRACE("after mcontext_swap");
         auto callstack = McoCallStack::CallStack();
         auto cur = callstack->cur();
 		auto cpy = cur->stack_->occupy();
-		if (cpy == cur) {
+		if (cpy == cur && !cur->priStack_) {
 			cur->stack_->occupy(nullptr);
 		}
         LOGGER_TRACE("cur co=" << (unsigned long)cur);
@@ -177,6 +184,7 @@ public:
             && !cur->priStack_) {
             cur->store_ = false;
             assert(cur->callstack_ == callstack);
+			cur->stack_->occupy(cur);
             McoStack::RecoverStack(cur->stack_);
         }
         std::cout << "end swap" << std::endl;
