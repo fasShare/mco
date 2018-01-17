@@ -43,6 +43,7 @@ public:
 		delete stack_;
 		stack_ = nullptr;
 		LOGGER_TRACE("McoRoutine [" << (unsigned long)this << "]will be destroyed.");
+		std::cout << gettid() << " McoRoutine [" << (unsigned long)this << "]will be destroyed." << std::endl;
 	}
 
     void isMain(bool m) {
@@ -97,8 +98,10 @@ public:
             (*callstack_)[index] = this;
             ++index;
             cur->running_ = false;
-			LOGGER_TRACE("resume cur=" << (unsigned long)cur);
-			LOGGER_TRACE("resume this=" << (unsigned long)this);
+			std::cout << gettid() << " resume cur=" << (unsigned long)cur << std::endl;
+			std::cout << gettid() << " resume this=" << (unsigned long)this << std::endl;
+			//LOGGER_TRACE("resume cur=" << (unsigned long)cur);
+			//LOGGER_TRACE("resume this=" << (unsigned long)this);
             swap(cur, this);
         } else {
 			assert(index >= 2);
@@ -126,8 +129,8 @@ public:
         running_ = false;
         called_ = false; // remove from callstack
         (*callstack_)[index - 1] = nullptr;
-        LOGGER_TRACE("yield sink=" << (unsigned long)sink);
-        LOGGER_TRACE("yield this=" << (unsigned long)this);
+		std::cout << gettid() << " yield sink=" << (unsigned long)sink << std::endl;
+		std::cout << gettid() << " yield this=" << (unsigned long)this << std::endl;
         --index;
         swap(this, sink);
     }
@@ -187,7 +190,7 @@ public:
 			cur->stack_->occupy(cur);
             McoStack::RecoverStack(cur->stack_);
         }
-        std::cout << "end swap" << std::endl;
+        LOGGER_TRACE("end swap");
     }
 
     bool callStack(McoCallStack *callstack) {

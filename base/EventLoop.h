@@ -88,6 +88,7 @@ public:
             epoll_->Loop(occur, 20000);
             for(size_t i = 0; i < occur.size(); ++i) {
 				LOGGER_TRACE("Begin handle event");
+				std::cout << gettid() << " begin handle event" << std::endl;
                 int fd = occur[i].fd;
                 auto ec = ecs_.find(fd);
                 if (ec == ecs_.end()) {
@@ -100,11 +101,11 @@ public:
 				}
 				auto ectx = ec->second; 
                 auto co = ectx->mco();
-                LOGGER_TRACE("co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count());
+				std::cout << gettid() << " co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count() << std::endl;
                 if (co) {
                     co->resume();
                 }
-                LOGGER_TRACE("co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count());
+				std::cout << gettid() << " co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count() << std::endl;
             }
         }
     }

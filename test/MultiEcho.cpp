@@ -16,7 +16,9 @@ SigIgnore signor;
 void client_call(std::weak_ptr<Econtext> wect) {
 	while (true) {
 		auto ect = wect.lock();
+		std::cout << gettid() << " after lock." << std::endl;
 		if (!ect) {
+			std::cout << gettid() << " lock nullptr" << std::endl;
 			break;
 		}
 		auto mco = ect->mco();
@@ -62,10 +64,13 @@ void accept_call(std::shared_ptr<Socket> acp, std::weak_ptr<Econtext> wect) {
 			auto loop = EventLoopPool::NextLoop();
 			auto aev = std::make_shared<Events>(client, kReadEvent);
 			auto econtext = std::make_shared<Econtext>();
+			
 			std::weak_ptr<Econtext> wec = econtext;
 			auto aco = std::make_shared<McoRoutine>(std::bind(client_call, wec));
+			
 			auto stack = new McoStack(loop->tid());
 			auto callstack = McoCallStack::CallStack(loop->tid());
+			
 			aco->stack(stack);
 			aco->callStack(callstack);
 
@@ -75,6 +80,8 @@ void accept_call(std::shared_ptr<Socket> acp, std::weak_ptr<Econtext> wect) {
 			econtext->loop(loop);
 
 			loop->put(econtext);
+
+			//std::cout << "econtext use_count:" << econtext.use_count() << std::endl;
 		}
 		if (mco) {
 			mco->yield();
@@ -114,8 +121,8 @@ int main() {
 	econtext->loop(mainloop);
 
 	std::thread t1(thread_func);
-//	std::thread t2(thread_func);
-//	std::thread t3(thread_func);
+	//std::thread t2(thread_func);
+	//std::thread t3(thread_func);
 
 	mainloop->put(econtext);
 	mainloop->loop();
