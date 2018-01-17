@@ -98,7 +98,8 @@ public:
 					wait();
 					continue;
 				}
-                auto co = ec->second->mco();
+				auto ectx = ec->second; 
+                auto co = ectx->mco();
                 LOGGER_TRACE("co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count());
                 if (co) {
                     co->resume();
