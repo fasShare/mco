@@ -192,6 +192,7 @@ public:
         assert(stack->rsize_ > 0);
         stack->stmp_ = new char[stack->rsize_];
         LOGGER_TRACE("stack:" << (unsigned long)stack);
+		//std::cout << gettid() << " Store-stack:" << (unsigned long)stack << std::endl;
         memcpy(stack->stmp_, stack->ssp_, stack->rsize_);
     }
 
@@ -200,6 +201,7 @@ public:
             return;
         }
         assert(stack->rsize_ >= 0);
+		//std::cout << gettid() << " Recover-stack:" << (unsigned long)stack << std::endl;
         LOGGER_TRACE("stack:" << (unsigned long)stack);
         LOGGER_TRACE("Recover->bottom:" << (unsigned long)stack->ssp_);
         LOGGER_TRACE("Recover->top:" << (unsigned long)stack->sbp_);

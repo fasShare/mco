@@ -39,11 +39,11 @@ int McontextMake(Mcontext *ctx, cofunc pfn, const void *s) {
     memset(ctx->regs, 0, sizeof(ctx->regs));
 
     char *sp = ctx->ss_sp + ctx->ss_size - sizeof(void *);
-	printf("ss_sp:%ld ss_size:%d\n", (unsigned long)ctx->ss_sp, ctx->ss_size);
     sp = (char*) ((unsigned long)sp & -16L);
     unsigned int *p = (unsigned int *)sp;
     *p = (unsigned int)s;
-    // popl %esp 完成以下两件事
+    
+	// popl %esp 完成以下两件事
     // (1) movl (ctx->regs[ESP]), %rsp
     // (2) subl 4, %esp 
     ctx->regs[ESP] = sp - sizeof(p);

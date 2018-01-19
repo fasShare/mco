@@ -98,8 +98,7 @@ public:
             (*callstack_)[index] = this;
             ++index;
             cur->running_ = false;
-			std::cout << gettid() << " resume cur=" << (unsigned long)cur << std::endl;
-			std::cout << gettid() << " resume this=" << (unsigned long)this << std::endl;
+			//std::cout << gettid() << " resume this=" << (unsigned long)this << " cur:" << (unsigned long)cur << std::endl;
 			//LOGGER_TRACE("resume cur=" << (unsigned long)cur);
 			//LOGGER_TRACE("resume this=" << (unsigned long)this);
             swap(cur, this);
@@ -129,8 +128,7 @@ public:
         running_ = false;
         called_ = false; // remove from callstack
         (*callstack_)[index - 1] = nullptr;
-		std::cout << gettid() << " yield sink=" << (unsigned long)sink << std::endl;
-		std::cout << gettid() << " yield this=" << (unsigned long)this << std::endl;
+		//std::cout << gettid() << " yield this=" << (unsigned long)this << " sink=" << (unsigned long)sink << std::endl;
         --index;
         swap(this, sink);
     }
@@ -138,9 +136,18 @@ public:
     static void swap(McoRoutine *sink, McoRoutine *co) {
         char c;
         LOGGER_TRACE("begin swap addr_c:" << (unsigned long)&c);
+		//std::cout << gettid() << " begin swap addr_c:" << (unsigned long)&c << std::endl;
         if (!(sink->done_ && sink->dyield_)) {
             sink->stack_->ssp(&c);
 		    sink->sinked(true);
+			if (!sink->priStack_ && !sink->store_) {
+				sink->store_ = true;
+				auto ocpy = sink->stack_->occupy();
+				assert(ocpy == sink);
+				sink->stack_->occupy(nullptr);
+				std::cout << gettid() << " store sink:" << (unsigned long)sink << std::endl;
+				McoStack::StoreStack(sink->stack_);
+			}
         } else {
             auto ocp = sink->stack_->occupy();
             if (ocp == sink) {
@@ -161,14 +168,10 @@ public:
 				assert(occupy->stack_->ssp());
                 occupy->store_ = true;
                 LOGGER_TRACE("occupy:" << (unsigned long)occupy);
+				std::cout << gettid() << " store occupy:" << (unsigned long)occupy << std::endl;
                 McoStack::StoreStack(occupy->stack_);
             }
         }
-		if (!(sink->done_ && sink->dyield_)
-			&& !sink->priStack_ && !sink->store_) {
-			sink->store_ = true;
-			McoStack::StoreStack(sink->stack_);
-		}
 
         LOGGER_TRACE("before mcontext_swap");
         mcontext_swap(sink->ctx_, co->ctx_);
@@ -191,6 +194,7 @@ public:
             McoStack::RecoverStack(cur->stack_);
         }
         LOGGER_TRACE("end swap");
+		//std::cout << gettid() << " end swap, cur_co=" << (unsigned long)cur << std::endl;
     }
 
     bool callStack(McoCallStack *callstack) {

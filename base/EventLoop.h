@@ -80,16 +80,15 @@ public:
 
     void loop() {
         assert(gettid() == tid_);
-        std::vector<PollerEvent> occur;
         while(!quit_) {
 			LOGGER_TRACE("Start new loop");
             eat();
-			occur.clear();
-            epoll_->Loop(occur, 20000);
-            for(size_t i = 0; i < occur.size(); ++i) {
+			occur_.clear();
+            epoll_->Loop(occur_, 20000);
+            for(size_t i = 0; i < occur_.size(); ++i) {
 				LOGGER_TRACE("Begin handle event");
-				std::cout << gettid() << " begin handle event" << std::endl;
-                int fd = occur[i].fd;
+				//std::cout << gettid() << " begin handle" << std::endl;
+                int fd = occur_[i].fd;
                 auto ec = ecs_.find(fd);
                 if (ec == ecs_.end()) {
 					LOGGER_TRACE("can't find fd:" << fd);
@@ -99,18 +98,22 @@ public:
 					wait();
 					continue;
 				}
-				auto ectx = ec->second; 
+				auto ectx = ec->second;
+				auto event = ectx->event();
+				if (!event || !eventHandleAble(event)) {
+					continue;
+				}
                 auto co = ectx->mco();
-				std::cout << gettid() << " co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count() << std::endl;
+				//std::cout << gettid() << " co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count() << std::endl;
                 if (co) {
                     co->resume();
                 }
-				std::cout << gettid() << " co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count() << std::endl;
+				//std::cout << gettid() << " co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count() << std::endl;
             }
         }
     }
 private:
-    bool eventHandleAble(boost::shared_ptr<Events> origin) {
+    bool eventHandleAble(std::shared_ptr<Events> origin) {
         if (origin->deler()) {
             return false;
         }   
@@ -143,6 +146,7 @@ private:
 		LOGGER_TRACE("ecs_size:" << ecs_.size());
         if (ec->deler()) {
 			LOGGER_TRACE("Delete Econtext");
+			//std::cout << gettid() << " Delete Econtext" << std::endl;;
             assert(ecs_.count(fd) == 1);
             epoll_->del(event.get());
             ecs_.erase(fd);
@@ -182,6 +186,7 @@ private:
     bool quit_;
     std::vector<std::shared_ptr<Econtext>> food_;
     std::unordered_map<int, std::shared_ptr<Econtext>> ecs_;
+	std::vector<PollerEvent> occur_;
 };
 
 }

@@ -16,7 +16,7 @@ SigIgnore signor;
 void client_call(std::weak_ptr<Econtext> wect) {
 	while (true) {
 		auto ect = wect.lock();
-		std::cout << gettid() << " after lock." << std::endl;
+		//std::cout << gettid() << " after lock." << std::endl;
 		if (!ect) {
 			std::cout << gettid() << " lock nullptr" << std::endl;
 			break;
