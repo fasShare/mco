@@ -71,7 +71,7 @@ public:
     ~Events() {
         uni_close(fd_);
         LOGGER_TRACE("Events destroyed.");
-		std::cout << gettid() << " Events destroyed." << std::endl;
+		//std::cout << gettid() << " Events destroyed." << std::endl;
     }
 
     bool reset() {

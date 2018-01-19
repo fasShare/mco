@@ -87,7 +87,7 @@ public:
             epoll_->Loop(occur_, 20000);
             for(size_t i = 0; i < occur_.size(); ++i) {
 				LOGGER_TRACE("Begin handle event");
-				//std::cout << gettid() << " begin handle" << std::endl;
+				std::cout << gettid() << " begin handle" << std::endl;
                 int fd = occur_[i].fd;
                 auto ec = ecs_.find(fd);
                 if (ec == ecs_.end()) {
@@ -104,11 +104,11 @@ public:
 					continue;
 				}
                 auto co = ectx->mco();
-				//std::cout << gettid() << " co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count() << std::endl;
+				std::cout << gettid() << " co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count() << std::endl;
                 if (co) {
                     co->resume();
                 }
-				//std::cout << gettid() << " co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count() << std::endl;
+				std::cout << gettid() << " co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count() << std::endl;
             }
         }
     }
@@ -146,7 +146,7 @@ private:
 		LOGGER_TRACE("ecs_size:" << ecs_.size());
         if (ec->deler()) {
 			LOGGER_TRACE("Delete Econtext");
-			//std::cout << gettid() << " Delete Econtext" << std::endl;;
+			//std::cout << gettid() << " Delete Econtext mco:" << (unsigned long)ec->mco().get() << std::endl;;
             assert(ecs_.count(fd) == 1);
             epoll_->del(event.get());
             ecs_.erase(fd);

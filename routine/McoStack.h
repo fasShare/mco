@@ -18,6 +18,10 @@ public:
         size_(size),
         occupy_(nullptr) {
         if (size_ > 0) {
+            if (size_ & 0xFFF) {
+                size_ &= ~0xFFF;
+                size_ += 0x1000;
+            }
             stack_ = new char[size_];
         } else {
             assert(false);

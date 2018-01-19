@@ -43,7 +43,7 @@ public:
 		delete stack_;
 		stack_ = nullptr;
 		LOGGER_TRACE("McoRoutine [" << (unsigned long)this << "]will be destroyed.");
-		std::cout << gettid() << " McoRoutine [" << (unsigned long)this << "]will be destroyed." << std::endl;
+		//std::cout << gettid() << " McoRoutine [" << (unsigned long)this << "]will be destroyed." << std::endl;
 	}
 
     void isMain(bool m) {
@@ -98,7 +98,7 @@ public:
             (*callstack_)[index] = this;
             ++index;
             cur->running_ = false;
-			//std::cout << gettid() << " resume this=" << (unsigned long)this << " cur:" << (unsigned long)cur << std::endl;
+			std::cout << gettid() << " resume this=" << (unsigned long)this << " cur:" << (unsigned long)cur << std::endl;
 			//LOGGER_TRACE("resume cur=" << (unsigned long)cur);
 			//LOGGER_TRACE("resume this=" << (unsigned long)this);
             swap(cur, this);
@@ -128,7 +128,7 @@ public:
         running_ = false;
         called_ = false; // remove from callstack
         (*callstack_)[index - 1] = nullptr;
-		//std::cout << gettid() << " yield this=" << (unsigned long)this << " sink=" << (unsigned long)sink << std::endl;
+		std::cout << gettid() << " yield this=" << (unsigned long)this << " sink=" << (unsigned long)sink << std::endl;
         --index;
         swap(this, sink);
     }
@@ -145,7 +145,7 @@ public:
 				auto ocpy = sink->stack_->occupy();
 				assert(ocpy == sink);
 				sink->stack_->occupy(nullptr);
-				std::cout << gettid() << " store sink:" << (unsigned long)sink << std::endl;
+				//std::cout << gettid() << " store sink:" << (unsigned long)sink << std::endl;
 				McoStack::StoreStack(sink->stack_);
 			}
         } else {
@@ -168,7 +168,7 @@ public:
 				assert(occupy->stack_->ssp());
                 occupy->store_ = true;
                 LOGGER_TRACE("occupy:" << (unsigned long)occupy);
-				std::cout << gettid() << " store occupy:" << (unsigned long)occupy << std::endl;
+				//std::cout << gettid() << " store occupy:" << (unsigned long)occupy << std::endl;
                 McoStack::StoreStack(occupy->stack_);
             }
         }
