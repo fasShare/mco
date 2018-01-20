@@ -18,6 +18,10 @@ public:
         size_(size),
         occupy_(nullptr) {
         if (size_ > 0) {
+            if (size_ & 0xFFF) {
+                size_ &= ~0xFFF;
+                size_ += 0x1000;
+            }
             stack_ = new char[size_];
         } else {
             assert(false);
@@ -46,7 +50,7 @@ private:
 
 class CommonStack {
 public:
-    CommonStack(size_t num = 2, size_t size = 1024 * 1024) :
+    CommonStack(size_t num = 1, size_t size = 1024 * 1024) :
         index_(0),
         num_(num),
         size_(size),
@@ -59,7 +63,7 @@ public:
             assert(mempools_.size() == num_);
         }
     }
-    
+
     bool vaild() {
         return vaild_;
     }
@@ -105,6 +109,7 @@ public:
                 size_ &= ~0xFFF;
                 size_ += 0x1000;
             }
+            LOGGER_TRACE("create private size:" << size_);
             stack_ = new char[size_];
             if (stack_ && size_ > 0) {
                 sbp_ = stack_ + size_;
@@ -129,9 +134,13 @@ public:
             delete[] stmp_;
         }
     }
-    
+
     void ssp(char *sp) {
         ssp_ = sp;
+    }
+
+    char *ssp() {
+        return ssp_;
     }
 
     size_t size() {
@@ -180,13 +189,14 @@ public:
             delete[] stack->stmp_;
             stack->stmp_ = nullptr;
         }
-        stack->rsize_ = stack->sbp_ - stack->ssp_;
+        stack->rsize_ = (unsigned long)stack->sbp_ - (unsigned long)stack->ssp_;
+        //LOGGER_TRACE("Store->bottom:" << (unsigned long)stack->ssp_);
+        //LOGGER_TRACE("Store->top:" << (unsigned long)stack->sbp_);
+        //LOGGER_TRACE("Store->restore_size:" << stack->rsize_);
         assert(stack->rsize_ > 0);
         stack->stmp_ = new char[stack->rsize_];
-        LOGGER_TRACE("stack:" << (unsigned long)stack);
-        LOGGER_TRACE("Store->bottom:" << (unsigned long)stack->ssp_);
-        LOGGER_TRACE("Store->top:" << (unsigned long)stack->sbp_);
-        LOGGER_TRACE("Store->restore_size:" << stack->rsize_);
+        //LOGGER_TRACE("stack:" << (unsigned long)stack);
+		//std::cout << gettid() << " Store-stack:" << (unsigned long)stack << std::endl;
         memcpy(stack->stmp_, stack->ssp_, stack->rsize_);
     }
 
@@ -195,10 +205,11 @@ public:
             return;
         }
         assert(stack->rsize_ >= 0);
-        LOGGER_TRACE("stack:" << (unsigned long)stack);
-        LOGGER_TRACE("Recover->bottom:" << (unsigned long)stack->ssp_);
-        LOGGER_TRACE("Recover->top:" << (unsigned long)stack->sbp_);
-        LOGGER_TRACE("Recover->restore_size:" << stack->rsize_);
+		//std::cout << gettid() << " Recover-stack:" << (unsigned long)stack << std::endl;
+        //LOGGER_TRACE("stack:" << (unsigned long)stack);
+        //LOGGER_TRACE("Recover->bottom:" << (unsigned long)stack->ssp_);
+        //LOGGER_TRACE("Recover->top:" << (unsigned long)stack->sbp_);
+        //LOGGER_TRACE("Recover->restore_size:" << stack->rsize_);
         memcpy(stack->ssp_, stack->stmp_, stack->rsize_);
     }
 private:

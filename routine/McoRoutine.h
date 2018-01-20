@@ -24,11 +24,11 @@ class McoRoutine {
 public:
     McoRoutine(Routine run, bool use_private = false) :
         sink_(nullptr),
-		stack_(nullptr),
+        stack_(nullptr),
         callstack_(nullptr),
         ctx_(new Mcontext),
         corun_(run),
-		priStack_(use_private),
+        priStack_(use_private),
         main_(false),
         called_(false),
         shouldClose_(false),
@@ -36,13 +36,15 @@ public:
         running_(false),
         done_(false),
         dyield_(false),
-        store_(false) {
-	}
-	~McoRoutine() {
-		delete stack_;
-		stack_ = nullptr;
-		LOGGER_TRACE("McoRoutine will be destroyed.");
-	}
+        store_(false),
+        sinked_(false) {
+        }
+    ~McoRoutine() {
+        delete stack_;
+        stack_ = nullptr;
+        LOGGER_TRACE("McoRoutine [" << (unsigned long)this << "]will be destroyed.");
+        //		std::cout << gettid() << " McoRoutine [" << (unsigned long)this << "]will be destroyed." << std::endl;
+    }
 
     void isMain(bool m) {
         main_ = m;
@@ -51,7 +53,15 @@ public:
     bool isMain() {
         return main_;
     }
-    
+
+    bool sinked() {
+        return sinked_;
+    }
+
+    void sinked(bool sink) {
+        sinked_ = sink;
+    }
+
     void resume() {
         if (running_ || (done_ && dyield_)) {
             return;
@@ -65,7 +75,7 @@ public:
             auto mco = new McoRoutine(Empty, true);
             mco->stack(stack);
             mco->callStack(callstack_);
-            initMcontext();
+            mco->initMcontext();
             McontextMake(mco->ctx_, (cofunc)McoRoutine::RunRoutine, mco);
             mco->main_ = true;
             mco->start_ = true;
@@ -88,8 +98,12 @@ public:
             (*callstack_)[index] = this;
             ++index;
             cur->running_ = false;
+            //std::cout << gettid() << " resume this=" << (unsigned long)this << " cur:" << (unsigned long)cur << std::endl;
+            //LOGGER_TRACE("resume cur=" << (unsigned long)cur);
+            //LOGGER_TRACE("resume this=" << (unsigned long)this);
             swap(cur, this);
         } else {
+            assert(index >= 2);
             cur->yield();
         }
     }
@@ -114,48 +128,78 @@ public:
         running_ = false;
         called_ = false; // remove from callstack
         (*callstack_)[index - 1] = nullptr;
-        LOGGER_TRACE("yield sink=" << (unsigned long)sink);
-        LOGGER_TRACE("yield this=" << (unsigned long)this);
+        //std::cout << gettid() << " yield this=" << (unsigned long)this << " sink=" << (unsigned long)sink << std::endl;
         --index;
         swap(this, sink);
     }
-    
+
     static void swap(McoRoutine *sink, McoRoutine *co) {
         char c;
-        std::cout << "begin swap" << std::endl;
-        sink->stack_->ssp(&c);
+        //LOGGER_TRACE("begin swap addr_c:" << (unsigned long)&c);
+        //std::cout << gettid() << " begin swap addr_c:" << (unsigned long)&c << std::endl;
+        if (!(sink->done_ && sink->dyield_)) {
+            sink->stack_->ssp(&c);
+            sink->sinked(true);
+            if (!sink->priStack_ && !sink->store_) {
+                sink->store_ = true;
+                auto ocpy = sink->stack_->occupy();
+                assert(ocpy == sink);
+                sink->stack_->occupy(nullptr);
+                //std::cout << gettid() << " store sink:" << (unsigned long)sink << std::endl;
+                McoStack::StoreStack(sink->stack_);
+            }
+        } else {
+            auto ocp = sink->stack_->occupy();
+            if (ocp == sink) {
+                sink->stack_->occupy(nullptr);
+            }
+        }
         if (!co->priStack_) {
             auto occupy = co->stack_->occupy();
+            if (occupy) {
+                assert(occupy->sinked());
+            }
+            co->sinked(false);
             co->stack_->occupy(co);
             if (occupy && occupy != co
-                && !(occupy->done_ && occupy->dyield_)
-                && occupy->stack_) {
+                    && !(occupy->done_ && occupy->dyield_)
+                    && occupy->stack_) {
+                assert(occupy->stack_);
+                assert(occupy->stack_->ssp());
                 occupy->store_ = true;
-                LOGGER_TRACE("occupy:" << (unsigned long)occupy);
+                //LOGGER_TRACE("occupy:" << (unsigned long)occupy);
+                //std::cout << gettid() << " store occupy:" << (unsigned long)occupy << std::endl;
                 McoStack::StoreStack(occupy->stack_);
             }
         }
-        std::cout << "before mcontext_swap" << std::endl;
+
+        //LOGGER_TRACE("before mcontext_swap");
         mcontext_swap(sink->ctx_, co->ctx_);
-        std::cout << "after mcontext_swap" << std::endl;
+        //LOGGER_TRACE("after mcontext_swap");
         auto callstack = McoCallStack::CallStack();
         auto cur = callstack->cur();
-        std::cout << "cur co=" << (unsigned long)cur << std::endl;
-        std::cout << "callstack index=" << (unsigned long)callstack->index() << std::endl;
-        std::cout << "callstack size=" << (unsigned long)callstack->size() << std::endl;
+        auto cpy = cur->stack_->occupy();
+        if (cpy == cur && !cur->priStack_) {
+            cur->stack_->occupy(nullptr);
+        }
+        //LOGGER_TRACE("cur co=" << (unsigned long)cur);
+        //LOGGER_TRACE("callstack index=" << (unsigned long)callstack->index());
+        //LOGGER_TRACE("callstack size=" << (unsigned long)callstack->size());
         if (cur && cur->store_
-            && cur->stack_
-            && !cur->priStack_) {
+                && cur->stack_
+                && !cur->priStack_) {
             cur->store_ = false;
             assert(cur->callstack_ == callstack);
+            cur->stack_->occupy(cur);
             McoStack::RecoverStack(cur->stack_);
         }
-        std::cout << "end swap" << std::endl;
+        //LOGGER_TRACE("end swap");
+        //std::cout << gettid() << " end swap, cur_co=" << (unsigned long)cur << std::endl;
     }
 
     bool callStack(McoCallStack *callstack) {
         if (callstack
-            && callstack->vaild()) {
+                && callstack->vaild()) {
             callstack_ = callstack;
             return true;
         }
@@ -164,11 +208,15 @@ public:
 
     bool stack(McoStack *stack) {
         if (stack
-            && stack->vaild()) {
+                && stack->vaild()) {
             stack_ = stack;
             return true;
         }
         return false;
+    }
+
+    McoStack *stack() {
+        return stack_;
     }
 
     static void Empty() {
@@ -207,6 +255,7 @@ private:
     bool done_;
     bool dyield_;
     bool store_;
+    bool sinked_;
 };
 
 }
