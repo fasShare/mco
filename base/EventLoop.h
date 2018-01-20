@@ -44,11 +44,9 @@ public:
     bool put(std::shared_ptr<Econtext> ectx) {
         MutexLocker lock(mutex_);
         if (gettid() != tid_) {    
-            food_.push_back(ectx);
             notify();
-        } else {
-            esync(ectx);
         }
+        esync(ectx);
         return true;
     }
     
@@ -82,33 +80,43 @@ public:
         assert(gettid() == tid_);
         while(!quit_) {
 			LOGGER_TRACE("Start new loop");
-            eat();
 			occur_.clear();
             epoll_->Loop(occur_, 20000);
-            for(size_t i = 0; i < occur_.size(); ++i) {
+            for( size_t i = 0; i < occur_.size(); ++i) {
 				LOGGER_TRACE("Begin handle event");
-				std::cout << gettid() << " begin handle" << std::endl;
+				//std::cout << gettid() << " begin handle[" << i << "]" << std::endl;
                 int fd = occur_[i].fd;
                 auto ec = ecs_.find(fd);
                 if (ec == ecs_.end()) {
 					LOGGER_TRACE("can't find fd:" << fd);
-                    assert(false);
+                    continue;
                 }
 				if (fd == wfd_) {
 					wait();
 					continue;
 				}
 				auto ectx = ec->second;
+                if (!ectx) {
+                    continue;
+                }
+
 				auto event = ectx->event();
-				if (!event || !eventHandleAble(event)) {
+				if (!event) {
+                    continue;
+                }
+                event->emutable(occur_[i].event);
+                if (!eventHandleAble(event)) {
 					continue;
 				}
+
                 auto co = ectx->mco();
-				std::cout << gettid() << " co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count() << std::endl;
+                //std::cout << gettid() << " co [" << (unsigned long)(co.get())
+                //          << "] use_count:" << co.use_count() << std::endl;
                 if (co) {
                     co->resume();
                 }
-				std::cout << gettid() << " co [" << (unsigned long)(co.get()) << "] use_count:" << co.use_count() << std::endl;
+                //std::cout << gettid() << " co [" << (unsigned long)(co.get())
+                //          << "] use_count:" << co.use_count() << std::endl;
             }
         }
     }
@@ -139,7 +147,6 @@ private:
     }
 
     bool esync(std::shared_ptr<Econtext> ec) {
-        assert(gettid() == tid_);
         int fd = ec->fd();
         auto event = ec->event();
         assert(event && (event->fd() == fd));

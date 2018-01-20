@@ -14,9 +14,10 @@ using namespace moxie;
 SigIgnore signor;
 
 void client_call(std::weak_ptr<Econtext> wect) {
+    auto wectt = std::move(wect);
 	while (true) {
-		auto ect = wect.lock();
-		std::cout << gettid() << " after lock." << std::endl;
+		auto ect = wectt.lock();
+	    //std::cout << gettid() << " after lock." << std::endl;
 		if (!ect) {
 			std::cout << gettid() << " lock nullptr" << std::endl;
 			break;
@@ -34,6 +35,7 @@ void client_call(std::weak_ptr<Econtext> wect) {
 			if (loop) {
 				auto event = ect->event();
 				if (event) {
+                    //std::cout << gettid() << " will delete econtext." << std::endl;
 					event->state(DEL);
 					loop->put(ect);
 				} else {
@@ -119,8 +121,8 @@ int main() {
 	econtext->loop(mainloop);
 
 	std::thread t1(thread_func);
-	//std::thread t2(thread_func);
-	//std::thread t3(thread_func);
+	std::thread t2(thread_func);
+	std::thread t3(thread_func);
 
 	mainloop->put(econtext);
 	mainloop->loop();

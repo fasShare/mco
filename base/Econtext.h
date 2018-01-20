@@ -67,6 +67,9 @@ public:
         }
         return false;
     }
+    ~Econtext() {
+        //std::cout << gettid() << " Econtext will destroyed" << std::endl;
+    }
 private:
     int fd_;
 	EventLoop *loop_;

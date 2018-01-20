@@ -43,7 +43,7 @@ public:
 		delete stack_;
 		stack_ = nullptr;
 		LOGGER_TRACE("McoRoutine [" << (unsigned long)this << "]will be destroyed.");
-		//std::cout << gettid() << " McoRoutine [" << (unsigned long)this << "]will be destroyed." << std::endl;
+//		std::cout << gettid() << " McoRoutine [" << (unsigned long)this << "]will be destroyed." << std::endl;
 	}
 
     void isMain(bool m) {
@@ -98,7 +98,7 @@ public:
             (*callstack_)[index] = this;
             ++index;
             cur->running_ = false;
-			std::cout << gettid() << " resume this=" << (unsigned long)this << " cur:" << (unsigned long)cur << std::endl;
+			//std::cout << gettid() << " resume this=" << (unsigned long)this << " cur:" << (unsigned long)cur << std::endl;
 			//LOGGER_TRACE("resume cur=" << (unsigned long)cur);
 			//LOGGER_TRACE("resume this=" << (unsigned long)this);
             swap(cur, this);
@@ -128,14 +128,14 @@ public:
         running_ = false;
         called_ = false; // remove from callstack
         (*callstack_)[index - 1] = nullptr;
-		std::cout << gettid() << " yield this=" << (unsigned long)this << " sink=" << (unsigned long)sink << std::endl;
+		//std::cout << gettid() << " yield this=" << (unsigned long)this << " sink=" << (unsigned long)sink << std::endl;
         --index;
         swap(this, sink);
     }
     
     static void swap(McoRoutine *sink, McoRoutine *co) {
         char c;
-        LOGGER_TRACE("begin swap addr_c:" << (unsigned long)&c);
+        //LOGGER_TRACE("begin swap addr_c:" << (unsigned long)&c);
 		//std::cout << gettid() << " begin swap addr_c:" << (unsigned long)&c << std::endl;
         if (!(sink->done_ && sink->dyield_)) {
             sink->stack_->ssp(&c);
@@ -167,24 +167,24 @@ public:
 				assert(occupy->stack_);
 				assert(occupy->stack_->ssp());
                 occupy->store_ = true;
-                LOGGER_TRACE("occupy:" << (unsigned long)occupy);
+                //LOGGER_TRACE("occupy:" << (unsigned long)occupy);
 				//std::cout << gettid() << " store occupy:" << (unsigned long)occupy << std::endl;
                 McoStack::StoreStack(occupy->stack_);
             }
         }
 
-        LOGGER_TRACE("before mcontext_swap");
+        //LOGGER_TRACE("before mcontext_swap");
         mcontext_swap(sink->ctx_, co->ctx_);
-        LOGGER_TRACE("after mcontext_swap");
+        //LOGGER_TRACE("after mcontext_swap");
         auto callstack = McoCallStack::CallStack();
         auto cur = callstack->cur();
 		auto cpy = cur->stack_->occupy();
 		if (cpy == cur && !cur->priStack_) {
 			cur->stack_->occupy(nullptr);
 		}
-        LOGGER_TRACE("cur co=" << (unsigned long)cur);
-        LOGGER_TRACE("callstack index=" << (unsigned long)callstack->index());
-        LOGGER_TRACE("callstack size=" << (unsigned long)callstack->size());
+        //LOGGER_TRACE("cur co=" << (unsigned long)cur);
+        //LOGGER_TRACE("callstack index=" << (unsigned long)callstack->index());
+        //LOGGER_TRACE("callstack size=" << (unsigned long)callstack->size());
         if (cur && cur->store_
             && cur->stack_
             && !cur->priStack_) {
@@ -193,7 +193,7 @@ public:
 			cur->stack_->occupy(cur);
             McoStack::RecoverStack(cur->stack_);
         }
-        LOGGER_TRACE("end swap");
+        //LOGGER_TRACE("end swap");
 		//std::cout << gettid() << " end swap, cur_co=" << (unsigned long)cur << std::endl;
     }
 
