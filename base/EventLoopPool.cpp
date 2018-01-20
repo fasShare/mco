@@ -16,13 +16,13 @@ bool moxie::EventLoopPool::addEventLoop(long tid, moxie::EventLoop* loop, bool i
     if ((loop == NULL) || (loops_.find(tid) != loops_.end())) {
         return false;
     }
-    
-	loops_[tid] = loop;
+
+    loops_[tid] = loop;
     if (!ismain) {
         nextLoops_.push_back(loop);
     } else {
-		mainLoop_ = loop;
-	}
+        mainLoop_ = loop;
+    }
     LOGGER_TRACE("Num of EventLoop in Bucket is " << nextLoops_.size());
     return true;
 }

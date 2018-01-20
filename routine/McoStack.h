@@ -63,7 +63,7 @@ public:
             assert(mempools_.size() == num_);
         }
     }
-    
+
     bool vaild() {
         return vaild_;
     }
@@ -134,14 +134,14 @@ public:
             delete[] stmp_;
         }
     }
-    
+
     void ssp(char *sp) {
         ssp_ = sp;
     }
 
-	char *ssp() {
-		return ssp_;
-	}
+    char *ssp() {
+        return ssp_;
+    }
 
     size_t size() {
         return size_;
