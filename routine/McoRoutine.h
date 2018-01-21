@@ -46,23 +46,23 @@ public:
         //		std::cout << gettid() << " McoRoutine [" << (unsigned long)this << "]will be destroyed." << std::endl;
     }
 
-    void isMain(bool m) {
+    inline void isMain(bool m) {
         main_ = m;
     }
 
-    bool isMain() {
+    inline bool isMain() {
         return main_;
     }
 
-    bool sinked() {
+    inline bool sinked() {
         return sinked_;
     }
 
-    void sinked(bool sink) {
+    inline void sinked(bool sink) {
         sinked_ = sink;
     }
 
-    void resume() {
+    inline void resume() {
         if (running_ || (done_ && dyield_)) {
             return;
         }
@@ -108,7 +108,7 @@ public:
         }
     }
 
-    void yield() {
+    inline void yield() {
         if (!running_ && (done_ && dyield_)) {
             return;
         }
@@ -133,7 +133,7 @@ public:
         swap(this, sink);
     }
 
-    static void swap(McoRoutine *sink, McoRoutine *co) {
+    inline static void swap(McoRoutine *sink, McoRoutine *co) {
         char c;
         //LOGGER_TRACE("begin swap addr_c:" << (unsigned long)&c);
         //std::cout << gettid() << " begin swap addr_c:" << (unsigned long)&c << std::endl;
@@ -197,7 +197,7 @@ public:
         //std::cout << gettid() << " end swap, cur_co=" << (unsigned long)cur << std::endl;
     }
 
-    bool callStack(McoCallStack *callstack) {
+    inline bool callStack(McoCallStack *callstack) {
         if (callstack
                 && callstack->vaild()) {
             callstack_ = callstack;
@@ -206,7 +206,7 @@ public:
         return false;
     }
 
-    bool stack(McoStack *stack) {
+    inline bool stack(McoStack *stack) {
         if (stack
                 && stack->vaild()) {
             stack_ = stack;
@@ -215,15 +215,15 @@ public:
         return false;
     }
 
-    McoStack *stack() {
+    inline McoStack *stack() {
         return stack_;
     }
 
-    static void Empty() {
+    inline static void Empty() {
         assert(false);
     }
 
-    static void RunRoutine(McoRoutine *co) {
+    inline static void RunRoutine(McoRoutine *co) {
         if (co && co->running_) {
             try {
                 co->corun_();
@@ -235,7 +235,7 @@ public:
         }
     }
 private:
-    void initMcontext() {
+    inline void initMcontext() {
         McontextInit(ctx_);
         ctx_->ss_sp = stack_->stack();
         ctx_->ss_size = stack_->size();

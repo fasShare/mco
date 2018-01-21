@@ -1,10 +1,13 @@
-#include "MutexLocker.h"
-#include "Mutex.h"
+#include <MutexLocker.h>
+#include <Mutex.h>
 
-moxie::MutexLocker::MutexLocker(moxie::Mutex& mutex):mutex_(mutex){
+using moxie::Mutex;
+using moxie::MutexLocker;
+
+MutexLocker::MutexLocker(Mutex& mutex):mutex_(mutex){
     mutex_.lock();
 }
 
-moxie::MutexLocker::~MutexLocker(){
+MutexLocker::~MutexLocker(){
     mutex_.unlock();
 }

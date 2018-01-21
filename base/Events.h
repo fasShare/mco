@@ -85,12 +85,15 @@ public:
     bool invaild() const {
         return state_ == BAD;
     }
+
     bool moder() const {
         return state_ == MOD;
     }
+
     bool newer() const {
         return state_ == NEW;
     }
+
     bool deler() const {
         return state_ == DEL;
     }
@@ -136,16 +139,19 @@ public:
         mutable_ = event;
     }
 
-    bool isRead() {
+    bool isRead() const {
         return contains(mutable_, POLLIN | POLLPRI | POLLRDHUP);
     }
-    bool isWrite() {
+    
+    bool isWrite() const {
         return contains(mutable_, POLLOUT);
     }
-    bool isError() {
+    
+    bool isError() const {
         return contains(mutable_, POLLERR | POLLNVAL);
     }
-    bool isClose() {
+
+    bool isClose() const {
         return contains(mutable_, POLLHUP) && !contains(mutable_, POLLIN);
     }
 
@@ -153,7 +159,7 @@ public:
         return ((emutable & events) != 0);
     }
 
-    struct epoll_event epollEvents() {
+    struct epoll_event epollEvents() const {
         struct epoll_event events;
         bzero(&events, sizeof(struct epoll_event));
         events.data.fd = fd_;
@@ -161,11 +167,11 @@ public:
         return events;
     }
     
-    bool originRead() {
+    bool originRead() const {
         return contains(eorigin_, POLLIN | POLLPRI | POLLRDHUP);
     }
 
-    bool originWrite() {
+    bool originWrite() const {
         return contains(eorigin_, POLLOUT);
     }
 private:

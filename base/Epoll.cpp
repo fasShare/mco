@@ -10,7 +10,11 @@
 #include <Timestamp.h>
 #include <Events.h>
 
-moxie::Epoll::Epoll() :
+using moxie::Events;
+using moxie::Epoll;
+using moxie::Timestamp;
+
+Epoll::Epoll() :
     epoll_fd_(-1),
     revents_(),
     maxNum_(20),
@@ -23,7 +27,7 @@ moxie::Epoll::Epoll() :
     revents_.resize(maxNum_);
 }
 
-bool moxie::Epoll::eventCtl(int op, int sd, EpollEvent* event) {
+bool Epoll::eventCtl(int op, int sd, EpollEvent* event) {
     assert(epoll_fd_ != -1);
     int ret = ::epoll_ctl(epoll_fd_, op, sd, event);
     if (ret == -1) {
@@ -34,19 +38,19 @@ bool moxie::Epoll::eventCtl(int op, int sd, EpollEvent* event) {
     }
 }
 
-bool moxie::Epoll::eventAdd(int sd, EpollEvent* event) {
+bool Epoll::eventAdd(int sd, EpollEvent* event) {
     return eventCtl(EPOLL_CTL_ADD, sd, event);
 }
 
-bool moxie::Epoll::eventDel(int sd, EpollEvent* event) {
+bool Epoll::eventDel(int sd, EpollEvent* event) {
     return eventCtl(EPOLL_CTL_DEL, sd, event);
 }
 
-bool moxie::Epoll::eventMod(int sd, EpollEvent* event) {
+bool Epoll::eventMod(int sd, EpollEvent* event) {
     return eventCtl(EPOLL_CTL_MOD, sd, event);
 }
 
-int moxie::Epoll::loopWait(EpollEvent* events, int maxevents, int timeout) {
+int Epoll::loopWait(EpollEvent* events, int maxevents, int timeout) {
 should_continue:
     int ret = ::epoll_wait(epoll_fd_, events, maxevents, timeout);
     if (ret == -1) {
@@ -59,22 +63,22 @@ should_continue:
     return ret;
 }
 
-bool moxie::Epoll::add(Events* events) {
+bool Epoll::add(Events* events) {
     EpollEvent event = events->epollEvents();
     return this->eventAdd(event.data.fd, &event);
 }
 
-bool moxie::Epoll::mod(Events* events) {
+bool Epoll::mod(Events* events) {
     EpollEvent event = events->epollEvents();
     return this->eventMod(event.data.fd, &event);
 }
 
-bool moxie::Epoll::del(Events* events) {
+bool Epoll::del(Events* events) {
     EpollEvent event = events->epollEvents();
     return this->eventDel(event.data.fd, &event);
 }
 
-moxie::Timestamp moxie::Epoll::Loop(std::vector<PollerEvent> &events, int timeout) {
+Timestamp moxie::Epoll::Loop(std::vector<PollerEvent> &events, int timeout) {
     int ret = this->loopWait(revents_.data(), maxNum_, timeout);
     for(int i = 0; i < ret; i++) {
         PollerEvent event;
@@ -91,7 +95,7 @@ moxie::Timestamp moxie::Epoll::Loop(std::vector<PollerEvent> &events, int timeou
     return Timestamp::now();
 }
 
-moxie::Epoll::~Epoll() {
+Epoll::~Epoll() {
     ::close(epoll_fd_);
 }
 

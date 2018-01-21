@@ -10,41 +10,41 @@ class McoRoutine;
 
 class McoCallStack {
 public:
-    size_t& index() { return index_; }
+    McoCallStack() :
+        callStack_(),
+        index_(0) {
+    }
 
-    McoRoutine*& operator[](const size_t index) {
+    inline size_t& index() { return index_; }
+
+    inline McoRoutine*& operator[](const size_t index) {
         return callStack_[index];
     }
 
-    McoRoutine* cur() {
+    inline McoRoutine* cur() {
         if (index_ > 0) {
             return callStack_[index_ - 1];
         }
         return nullptr;
     }
     
-    bool vaild() {
+    inline bool vaild() {
         return true;
     }
 
-    size_t size() {
-        return callStack_.size();
+    inline size_t size() {
+        return index_;
     }
 
-    bool empty() const {
-        return callStack_.size() == 0;
+    inline bool empty() const {
+        return index_ == 0;
     }
 
-    McoCallStack() :
-        callStack_(),
-        index_(0) {
-    }
-
-    static McoCallStack *CallStack() {
+    inline static McoCallStack *CallStack() {
         return moxie::PoolInThreads<McoCallStack *>::Item();
     }
     
-    static McoCallStack *CallStack(long tid) {
+    inline static McoCallStack *CallStack(long tid) {
         return moxie::PoolInThreads<McoCallStack *>::Item(tid);
     }
 private:

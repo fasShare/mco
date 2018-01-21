@@ -28,18 +28,18 @@ public:
         }
     }
 
-    size_t size() {
+    inline size_t size() {
         return size_;
     }
 
-    char *stack() {
+    inline char *stack() {
         return stack_;
     }
 
-    void occupy(McoRoutine *co) {
+    inline void occupy(McoRoutine *co) {
         occupy_ = co;
     }
-    McoRoutine *occupy() {
+    inline McoRoutine *occupy() {
         return occupy_;
     }
 private:
@@ -50,7 +50,7 @@ private:
 
 class CommonStack {
 public:
-    CommonStack(size_t num = 1, size_t size = 1024 * 1024) :
+    CommonStack(size_t num = 10, size_t size = 1024 * 1024) :
         index_(0),
         num_(num),
         size_(size),
@@ -64,11 +64,11 @@ public:
         }
     }
 
-    bool vaild() {
+    inline bool vaild() {
         return vaild_;
     }
 
-    stackmem *common() {
+    inline stackmem *common() {
         if (index_ >= mempools_.size()) {
             index_ = 0;
         }
@@ -76,12 +76,16 @@ public:
         return mempools_[index_++];
     }
 
-    static CommonStack* Stack(long tid) {
-        return PoolInThreads<CommonStack *>::Item(tid); 
+    inline static CommonStack* Stack(long tid) {
+        size_t num = 10;
+        size_t size = 1024 * 1024;
+        return PoolInThreads<CommonStack *>::Item(tid, num, size); 
     }
     
-    static CommonStack* Stack() {
-        return PoolInThreads<CommonStack *>::Item(); 
+    inline static CommonStack* Stack() {
+        size_t num = 10;
+        size_t size = 1024 * 1024;
+        return PoolInThreads<CommonStack *>::Item(num, size); 
     }
 private:
     size_t index_;
@@ -135,23 +139,23 @@ public:
         }
     }
 
-    void ssp(char *sp) {
+    inline void ssp(char *sp) {
         ssp_ = sp;
     }
 
-    char *ssp() {
+    inline char *ssp() {
         return ssp_;
     }
 
-    size_t size() {
+    inline size_t size() {
         return size_;
     }
 
-    char *stack() {
+    inline char *stack() {
         return stack_;
     }
 
-    void occupy(McoRoutine *co) {
+    inline void occupy(McoRoutine *co) {
         if (private_) {
             assert(common_ == nullptr);
         } else {
@@ -159,7 +163,7 @@ public:
         }
     }
 
-    McoRoutine *occupy() {
+    inline McoRoutine *occupy() {
         if (private_) {
             assert(common_ == nullptr);
             return nullptr;
@@ -168,19 +172,19 @@ public:
         }
     }
 
-    bool vaild() {
+    inline bool vaild() {
         return vaild_;
     }
 
-    long tid() {
+    inline long tid() {
         return tid_;
     }
 
-    void tid(long tid) {
+    inline void tid(long tid) {
         tid_ = tid;
     }
 
-    static void StoreStack(McoStack *stack) {
+    inline static void StoreStack(McoStack *stack) {
         if (!stack || !stack->vaild()) {
             return;
         }
@@ -200,7 +204,7 @@ public:
         memcpy(stack->stmp_, stack->ssp_, stack->rsize_);
     }
 
-    static void RecoverStack(McoStack *stack) {
+    inline static void RecoverStack(McoStack *stack) {
         if (!stack || !stack->vaild()) {
             return;
         }

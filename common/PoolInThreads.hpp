@@ -16,24 +16,28 @@ namespace moxie {
 template <class T>
 class PoolInThreads {
 public:
-    static boost::shared_ptr<T> Item() {
-        return Instance()->getT();
+    template <class... Args>
+    static boost::shared_ptr<T> Item(Args... args) {
+        return Instance()->getT(args...);
     }
-    static boost::shared_ptr<T> Item(long tid) {
-        return Instance()->getT(tid);
+    template <class... Args>
+    static boost::shared_ptr<T> Item(long tid, Args... args) {
+        return Instance()->getT(tid, args...);
     }
 private:
-    boost::shared_ptr<T> getT() {
+    template <class... Args>
+    boost::shared_ptr<T> getT(Args... args) {
         auto tid = gettid();
-        return getT(tid);
+        return getT(tid, args...);
     }
-    boost::shared_ptr<T> getT(long tid) {
+    template <class... Args>
+    boost::shared_ptr<T> getT(long tid, Args... args) {
         MutexLocker lock(mutex_);
         auto iter = pools_.find(tid);
         if (iter != pools_.end()) {
             return iter->second;
         }
-        auto ret = boost::make_shared<T>();
+        auto ret = boost::make_shared<T>(args...);
         pools_[tid] = ret;
         return ret;
     }
@@ -54,24 +58,28 @@ PoolInThreads<T> *PoolInThreads<T>::instance_ = nullptr;
 template<class T> 
 class PoolInThreads<T*> {
 public:
-    static T* Item() {
-        return Instance()->getT();
+    template <class... Args>
+    static T* Item(Args... args) {
+        return Instance()->getT(args...);
     }
-    static T* Item(long tid) {
-        return Instance()->getT(tid);
+    template <class... Args>
+    static T* Item(long tid, Args... args) {
+        return Instance()->getT(tid, args...);
     }
 private:
-    T* getT() {
+    template <class... Args>
+    T* getT(Args... args) {
         auto tid = gettid();
-        return getT(tid);
+        return getT(tid, args...);
     }
-    T* getT(long tid) {
+    template <class... Args>
+    T* getT(long tid, Args... args) {
         MutexLocker lock(mutex_);
         auto iter = pools_.find(tid);
         if (iter != pools_.end()) {
             return iter->second;
         }
-        auto ret = new T();
+        auto ret = new T(args...);
         pools_[tid] = ret;
         return ret;
     }

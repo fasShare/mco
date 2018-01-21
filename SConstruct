@@ -9,7 +9,7 @@ FAS_CFLAGS = [
     '-D_REENTRANT'
     ]
 
-INCLUDE_PATH = ['.', 'routine', 'base', 'tools']
+INCLUDE_PATH = ['.', 'routine', 'base', 'common']
 
 routine_source = Glob("routine/*.cpp") + Glob("routine/*.S") + Glob("base/*.cpp") + Glob("tools/*.cpp") 
 StaticLibrary('./lib/routine',

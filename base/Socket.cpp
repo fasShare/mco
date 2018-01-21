@@ -119,5 +119,3 @@ bool moxie::SetNoBlockingOrExec(int sd) {
     }
     return true;
 }
-
-
