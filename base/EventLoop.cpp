@@ -20,7 +20,6 @@ EventLoop::EventLoop() :
     tid_(gettid()),
     wfd_(eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK)),
     quit_(false),
-    food_(),
     ecs_() {
     assert(wfd_ >= 0);
     auto wec = std::make_shared<Econtext>();
@@ -40,6 +39,16 @@ bool EventLoop::put(std::shared_ptr<Econtext> ectx) {
     }
     esync(ectx);
     return true;
+}
+
+std::shared_ptr<Econtext> EventLoop::econtext(std::shared_ptr<Events> event) {
+    MutexLocker lock(mutex_);
+    
+    auto iter = ecs_.find(event->fd());
+    if (iter == ecs_.end()) {
+        return nullptr;
+    }
+    return iter->second;
 }
 
 long EventLoop::tid() const {
@@ -74,21 +83,26 @@ void EventLoop::loop() {
         LOGGER_TRACE("Start new loop");
         occur_.clear();
         epoll_->Loop(occur_, 20000);
-        for( size_t i = 0; i < occur_.size(); ++i) {
+        for(size_t i = 0; i < occur_.size(); ++i) {
             LOGGER_TRACE("Begin handle event");
             //std::cout << gettid() << " begin handle[" << i << "]" << std::endl;
             int fd = occur_[i].fd;
-            auto ec = ecs_.find(fd);
-            if (ec == ecs_.end()) {
-                LOGGER_TRACE("can't find fd:" << fd);
-                continue;
+            std::shared_ptr<Econtext> ectx = nullptr;
+            {
+                MutexLocker lock(mutex_);
+                auto iter = ecs_.find(fd);
+                if (iter == ecs_.end()) {
+                    LOGGER_TRACE("can't find fd:" << fd);
+                    continue;
+                }
+                ectx = iter->second;
+                if (!ectx) {
+                    continue;
+                }
             }
+        
             if (fd == wfd_) {
                 wait();
-                continue;
-            }
-            auto ectx = ec->second;
-            if (!ectx) {
                 continue;
             }
 
@@ -96,6 +110,7 @@ void EventLoop::loop() {
             if (!event) {
                 continue;
             }
+            
             event->emutable(occur_[i].event);
             if (!eventHandleAble(event)) {
                 continue;
@@ -145,7 +160,11 @@ bool EventLoop::esync(std::shared_ptr<Econtext> ec) {
     if (ec->deler()) {
         LOGGER_TRACE("Delete Econtext");
         //std::cout << gettid() << " Delete Econtext mco:" << (unsigned long)ec->mco().get() << std::endl;;
-        assert(ecs_.count(fd) == 1);
+        int count = ecs_.count(fd);
+        if (count != 1) {
+            std::cout << gettid() << " count != 1 count_val=[" << count << "]" << std::endl;
+            assert(ecs_.count(fd) == 1);
+        }
         epoll_->del(event.get());
         ecs_.erase(fd);
     } else if (ec->moder()) {

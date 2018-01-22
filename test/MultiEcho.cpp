@@ -13,13 +13,11 @@ using namespace moxie;
 
 SigIgnore signor;
 
-void client_call(std::weak_ptr<Econtext> wect) {
-    auto wectt = std::move(wect);
+void client_call_v2(std::shared_ptr<Events> event, EventLoop *loop) {
 	while (true) {
-		auto ect = wectt.lock();
-	    //std::cout << gettid() << " after lock." << std::endl;
+		auto ect = loop->econtext(event);
 		if (!ect) {
-			std::cout << gettid() << " lock nullptr" << std::endl;
+			std::cout << gettid() << " get ccontext nullptr" << std::endl;
 			break;
 		}
 		auto mco = ect->mco();
@@ -53,7 +51,7 @@ void client_call(std::weak_ptr<Econtext> wect) {
 	LOGGER_TRACE("Out of while.");
 }
 
-void accept_call(std::shared_ptr<Socket> acp, std::weak_ptr<Econtext> wect) {
+void accept_call_v2(std::shared_ptr<Socket> acp, std::weak_ptr<Econtext> wect) {
 	while (true) {
 		auto ect = wect.lock();
 		if (!ect) {
@@ -68,7 +66,7 @@ void accept_call(std::shared_ptr<Socket> acp, std::weak_ptr<Econtext> wect) {
 			auto econtext = std::make_shared<Econtext>();
 			
 			std::weak_ptr<Econtext> wec = econtext;
-			auto aco = std::make_shared<McoRoutine>(std::bind(client_call, wec));
+			auto aco = std::make_shared<McoRoutine>(std::bind(client_call_v2, aev, loop));
 			
 			auto stack = new McoStack(loop->tid());
 			auto callstack = McoCallStack::CallStack(loop->tid());
@@ -109,7 +107,7 @@ int main() {
 	auto aev = std::make_shared<Events>(acp->getSocket(), kReadEvent);
 	auto econtext = std::make_shared<Econtext>();
 
-	auto aco = std::make_shared<McoRoutine>(std::bind(accept_call, acp, econtext));
+	auto aco = std::make_shared<McoRoutine>(std::bind(accept_call_v2, acp, econtext));
 	auto stack = new McoStack(mainloop->tid());
 	auto callstack = McoCallStack::CallStack(mainloop->tid());
 	aco->stack(stack);
