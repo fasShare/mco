@@ -60,7 +60,43 @@ bool TcpServer::start() {
 }
 
 bool TcpServer::chain(std::shared_ptr<TcpConnection> conn) {
-    //tcp io
+    // read data tcp buffer
+    auto readbuffer = conn->readbuf();
+    int err = 0;
+    ssize_t ret = 0;
+    size_t total_size = 0;
+    while(true) {
+        ret = readbuffer->readFd(revents->getFd(), &err);
+        if (ret == 0) {
+            conn->shutdown();
+            break;
+        } else if ((ret < 0) && (err == EAGAIN || err == EWOULDBLOCK)) {
+            break;
+        } else if ((ret < 0) && (err == EINTR)) {
+            continue;
+        } else {
+            conn->shutdown();
+            break;
+        }
+        total_size += ret;
+    }
+
+    if (total_size > 0) {
+        auto hasdata = conn->hasData();
+        if (hasdata) {
+            hasdata(conn);
+        }
+    }
+    
+    // 检查TcpConnection是否需要关闭
+    if (conn->closed()) {
+        auto willBeClose = conn->willBeClose();
+        if (willBeClose) {
+            willBeClose(conn)
+        }
+        return false;
+    }
+    
     return true;        
 }
 
@@ -77,6 +113,7 @@ void TcpServer::proc(std::weak_ptr<TcpConnection> wconn) {
 
         // do sth
         if (!chain(conn)) {
+            // remove TcpConnection stored in TcpServer
             break;
         }
 
