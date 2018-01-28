@@ -26,6 +26,14 @@ public:
         fd_ = fd;
     }
 
+    int fdflag() {
+        return fdflag_;
+    }
+
+    void fdflag(int fdflag) {
+        fdflag_ = fdflag;
+    }
+
     std::shared_ptr<Events> event() const {
         return event_;
     }
@@ -35,7 +43,6 @@ public:
     }
 
     std::shared_ptr<McoRoutine> mco() const {
-        LOGGER_TRACE("co_ [" << (unsigned long)(co_.get()) << "] use_count:" << co_.use_count());
         return co_;
     }
 
@@ -72,6 +79,7 @@ public:
     }
 private:
     int fd_;
+    int fdflag_;
     EventLoop *loop_;
     std::shared_ptr<Events> event_;
     std::shared_ptr<McoRoutine> co_;
