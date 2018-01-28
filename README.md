@@ -1,2 +1,2 @@
-# moxie-co
-The coroutine with shared memory
+# mco
+一个共享可以共享栈的协程库，最初设计思想借鉴于腾讯开源libco，
