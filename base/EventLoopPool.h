@@ -27,10 +27,14 @@ public:
     static EventLoop *GetLoop(long tid) {
         return Instance()->getLoop(tid);
     }
+    static EventLoop *GetLoopNosafe(long tid) {
+        return Instance()->getLoopNosafe(tid);
+    }
 private:
     bool addEventLoop(long tid, EventLoop* loop, bool ismain = false);
     EventLoop *getNextLoop();
     EventLoop *getLoop(long tid);
+    EventLoop *getLoopNosafe(long tid);
 	EventLoop *getMainLoop();
     static EventLoopPool *Instance();
     EventLoopPool();

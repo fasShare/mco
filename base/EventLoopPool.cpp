@@ -40,6 +40,10 @@ moxie::EventLoop *moxie::EventLoopPool::getNextLoop() {
 
 moxie::EventLoop *moxie::EventLoopPool::getLoop(long tid) {
     MutexLocker locker(mutex_);
+    return getLoopNosafe(tid);
+}
+
+moxie::EventLoop *moxie::EventLoopPool::getLoopNosafe(long tid) {
     auto iter = loops_.find(tid);
     if (iter == loops_.end()) {
         return nullptr;
