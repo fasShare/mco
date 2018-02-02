@@ -51,6 +51,16 @@ std::shared_ptr<Econtext> EventLoop::econtext(std::shared_ptr<Events> event) {
     return iter->second;
 }
 
+std::shared_ptr<Econtext> EventLoop::econtext(int fd) {
+    MutexLocker lock(mutex_);
+    
+    auto iter = ecs_.find(fd);
+    if (iter == ecs_.end()) {
+        return nullptr;
+    }
+    return iter->second;
+}
+
 long EventLoop::tid() const {
         return tid_;
     }
@@ -121,6 +131,9 @@ void EventLoop::loop() {
             //          << "] use_count:" << co.use_count() << std::endl;
             if (co) {
                 co->resume();
+            }
+            if (co->complete()) {
+                delete co;
             }
             //std::cout << gettid() << " co [" << (unsigned long)(co.get())
             //          << "] use_count:" << co.use_count() << std::endl;

@@ -27,6 +27,7 @@ void client_call_v2(std::shared_ptr<Events> event, EventLoop *loop) {
 		LOGGER_TRACE("New socket io event on fd:" << ect->fd());
 		if (ret > 0) {
 			buf[ret] = 0;
+            printf("recv:%s", buf);
 			LOGGER_TRACE("recv:" << buf << " size:" << ret);
 		} else {
 			auto loop = ect->loop();
@@ -48,6 +49,7 @@ void client_call_v2(std::shared_ptr<Events> event, EventLoop *loop) {
 			mco->yield();
 		}
 	}
+    //std::cout << "out of while" << std::endl; 
 	LOGGER_TRACE("Out of while.");
 }
 
@@ -66,7 +68,7 @@ void accept_call_v2(std::shared_ptr<Socket> acp, std::weak_ptr<Econtext> wect) {
 			auto econtext = std::make_shared<Econtext>();
 			
 			std::weak_ptr<Econtext> wec = econtext;
-			auto aco = std::make_shared<McoRoutine>(std::bind(client_call_v2, aev, loop));
+			auto aco = new McoRoutine(std::bind(client_call_v2, aev, loop));
 			
 			auto stack = new McoStack(loop->tid());
 			auto callstack = McoCallStack::CallStack(loop->tid());
@@ -107,7 +109,7 @@ int main() {
 	auto aev = std::make_shared<Events>(acp->getSocket(), kReadEvent);
 	auto econtext = std::make_shared<Econtext>();
 
-	auto aco = std::make_shared<McoRoutine>(std::bind(accept_call_v2, acp, econtext));
+	auto aco = new McoRoutine(std::bind(accept_call_v2, acp, econtext));
 	auto stack = new McoStack(mainloop->tid());
 	auto callstack = McoCallStack::CallStack(mainloop->tid());
 	aco->stack(stack);

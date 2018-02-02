@@ -43,11 +43,20 @@ public:
         delete stack_;
         stack_ = nullptr;
         LOGGER_TRACE("McoRoutine [" << (unsigned long)this << "]will be destroyed.");
-        //		std::cout << gettid() << " McoRoutine [" << (unsigned long)this << "]will be destroyed." << std::endl;
+        std::cout << gettid() << " McoRoutine [" << (unsigned long)this << "]will be destroyed." << std::endl;
     }
 
     inline void isMain(bool m) {
         main_ = m;
+    }
+
+    inline void exit() {
+        shouldClose_ = true;
+        yield();
+    }
+
+    inline bool complete() {
+        return shouldClose_;
     }
 
     inline bool isMain() {

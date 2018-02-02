@@ -27,6 +27,7 @@ public:
 
     bool put(std::shared_ptr<Econtext> ectx);
     std::shared_ptr<Econtext> econtext(std::shared_ptr<Events> ectx);
+    std::shared_ptr<Econtext> econtext(int fd);
     long tid() const;
     void tid(long tid);
     bool notify();
