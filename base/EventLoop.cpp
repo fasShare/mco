@@ -132,6 +132,9 @@ void EventLoop::loop() {
             if (co) {
                 co->resume();
             }
+            if (co->complete()) {
+                delete co;
+            }
             //std::cout << gettid() << " co [" << (unsigned long)(co.get())
             //          << "] use_count:" << co.use_count() << std::endl;
         }

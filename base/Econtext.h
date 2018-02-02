@@ -10,6 +10,13 @@ class EventLoop;
 
 class Econtext {
 public:
+    Econtext() :
+        fd_(-1),
+        fdflag_(0),
+        loop_(nullptr),
+        event_(),
+        co_(nullptr) {
+    }
     EventLoop *loop() {
         return loop_;
     }
@@ -42,11 +49,11 @@ public:
         event_ = event;
     }
 
-    std::shared_ptr<McoRoutine> mco() const {
+    McoRoutine* mco() const {
         return co_;
     }
 
-    void mco(std::shared_ptr<McoRoutine> co) {
+    void mco(McoRoutine* co) {
         co_ = co;
     }
 
@@ -82,7 +89,7 @@ private:
     int fdflag_;
     EventLoop *loop_;
     std::shared_ptr<Events> event_;
-    std::shared_ptr<McoRoutine> co_;
+    McoRoutine* co_;
 };
 
 }
