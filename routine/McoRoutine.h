@@ -208,7 +208,7 @@ public:
 
     inline bool callStack(McoCallStack *callstack) {
         if (callstack
-                && callstack->vaild()) {
+            && callstack->vaild()) {
             callstack_ = callstack;
             return true;
         }

@@ -29,7 +29,7 @@ ssize_t read(int fd, void *buf, size_t nbyte) {
     if (ectx->fdflag() & O_NONBLOCK) {
         return read_uni_func(fd, buf, nbyte);
     }
-
+    
     return read_uni_func(fd, buf, nbyte);
 }
 

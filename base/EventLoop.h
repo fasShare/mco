@@ -29,8 +29,8 @@ public:
     std::shared_ptr<Econtext> econtext(std::shared_ptr<Events> ectx);
     std::shared_ptr<Econtext> econtext(int fd);
     long tid() const;
-    void tid(long tid);
     bool notify();
+    McoRoutine *curMco();
     bool quit();
     void loop();
 private:
@@ -46,6 +46,7 @@ private:
     std::vector<std::shared_ptr<Econtext>> food_;
     std::unordered_map<int, std::shared_ptr<Econtext>> ecs_;
     std::vector<PollerEvent> occur_;
+    McoCallStack *callStack_;
 };
 
 }

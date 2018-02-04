@@ -9,10 +9,12 @@
 #include <MutexLocker.h>
 #include <Timestamp.h>
 #include <Econtext.h>
+#include <McoCallStack.h>
 
 using moxie::EventLoop;
 using moxie::Events;
 using moxie::Econtext;
+using moxie::McoRoutine;
 
 EventLoop::EventLoop() :
     epoll_(new Epoll()),
@@ -20,7 +22,8 @@ EventLoop::EventLoop() :
     tid_(gettid()),
     wfd_(eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK)),
     quit_(false),
-    ecs_() {
+    ecs_(),
+    callStack_(McoCallStack::CallStack()) {
     assert(wfd_ >= 0);
     auto wec = std::make_shared<Econtext>();
     wec->event(std::make_shared<Events>(wfd_, kReadEvent));
@@ -39,6 +42,10 @@ bool EventLoop::put(std::shared_ptr<Econtext> ectx) {
     }
     esync(ectx);
     return true;
+}
+
+McoRoutine *EventLoop::curMco() {
+    return callStack_->cur();
 }
 
 std::shared_ptr<Econtext> EventLoop::econtext(std::shared_ptr<Events> event) {
@@ -62,11 +69,7 @@ std::shared_ptr<Econtext> EventLoop::econtext(int fd) {
 }
 
 long EventLoop::tid() const {
-        return tid_;
-    }
-
-void EventLoop::tid(long tid) {
-    tid_ = tid;
+    return tid_;
 }
 
 bool EventLoop::notify() {
